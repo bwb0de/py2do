@@ -131,13 +131,13 @@ def main():
             elif cmd_args[0] == 'q':
                 sair()
                 break
-            elif cmd_args[0] == 'd':
+            elif cmd_args[0] == 'c':
                 info = ''.join(cmd_args[1:])
                 concluida(info)
-            elif cmd_args[0] == 'u':
+            elif cmd_args[0] == 'p':
                 info = ''.join(cmd_args[1:])
                 nao_concluida(info)
-            elif cmd_args[0] == 'ld':
+            elif cmd_args[0] == 'lc':
                 filtro='ld'
             elif cmd_args[0] == 'lp':
                 filtro='lp'
