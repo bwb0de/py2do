@@ -24,7 +24,7 @@ def inclui_em_gitignore():
     if git_dir and not in_gitignore:
         with open('.gitignore', 'a') as f:
             f.write(os.linesep*2)
-            f.write('#Arquivo 2do cli')
+            f.write('#Arquivo 2do cli'+os.linesep)
             f.write(ARQUIVO)
 
 
