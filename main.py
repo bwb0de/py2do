@@ -49,7 +49,7 @@ def carrega_registros_na_memoria() -> list:
 
 
 
-def adicionar(info, n, tags='all'):
+def adicionar(info: str, n: int, tags: str='all') -> str:
     yyyy = str(datetime.datetime.today().year).zfill(2)
     mm = str(datetime.datetime.today().month).zfill(2)
     dd = str(datetime.datetime.today().day).zfill(2)
@@ -63,7 +63,7 @@ def adicionar(info, n, tags='all'):
         return registro
 
 
-def filtrar_registros(linhas, filtro=False):
+def filtrar_registros(linhas: list, filtro=False) -> list:
     if not filtro:
         linhas_ver = [l for l in linhas]
     elif filtro == 'ld':
@@ -74,18 +74,12 @@ def filtrar_registros(linhas, filtro=False):
     return linhas_ver
 
 
-def contar_linhas(linhas):
+def contar_linhas(linhas: list) -> int:
     return len(tuple(filter(None, linhas)))
 
 
-def ler(filtro=False):
-    linhas = None
-    no_info=False
-    try:
-        with open(ARQUIVO) as f:
-            linhas = f.read().split('\n')
-    except FileNotFoundError:
-        no_info = True
+def ler(linhas: list, filtro=False):
+    no_info = not bool(linhas)
 
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
        
@@ -102,19 +96,13 @@ def ler(filtro=False):
                 pass
             except ValueError:
                 pass
-
-        #linhas_ver = ['['+l.split('*][')[1] for l in linhas_ver]
-        #print(*linhas_ver, sep='\n')
     print("\033[H", end="")   # Coloca cursor no topo
 
 
-def concluida(lista_numeros, filtro=False):
+def concluida(lista_numeros: str, linhas: list, filtro=False) -> None:
     nums = lista_numeros.strip().split(',')
     nums = map(int, filter(None, nums))
     nums = set(map(lambda x: x-1, nums))
-    
-    with open(ARQUIVO) as f:
-        linhas = f.read().split('\n')
     
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
     info_selecionada = []
@@ -132,12 +120,10 @@ def concluida(lista_numeros, filtro=False):
         f.write('\n'.join(linhas))
 
 
-def nao_concluida(lista_numeros, filtro=False):
+def nao_concluida(lista_numeros: str, linhas: list,  filtro=False) -> None:
     nums = lista_numeros.strip().split(',')
     nums = map(int, filter(None, nums))
     nums = set(map(lambda x: x-1, nums))
-    with open(ARQUIVO) as f:
-        linhas = f.read().split('\n')
 
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
 
@@ -150,14 +136,14 @@ def nao_concluida(lista_numeros, filtro=False):
         f.write('\n'.join(linhas))
 
 
-def sair():
+def sair() -> None:
     if sys.platform == 'linux': os.system('clear')
     else: os.system('cls')
     print("\nFinalizando programa...\n")
    
 
 
-def main():
+def main() -> None:
     if sys.platform == 'linux': os.system('clear')
     else: os.system('cls')
 
@@ -165,7 +151,7 @@ def main():
     inclui_em_gitignore()
     linhas = carrega_registros_na_memoria()
 
-    filtro=False
+    filtro='lp'
     n=0
     first_pass = True
 
@@ -176,7 +162,8 @@ def main():
             print("")
             first_pass = False
 
-        ler(filtro)
+        ler(linhas, filtro=filtro)
+
         try:
             cmd_args = input('$: ').split()
             if cmd_args[0] == 'a':
@@ -188,10 +175,10 @@ def main():
                 break
             elif cmd_args[0] == 'c':
                 info = ''.join(cmd_args[1:])
-                concluida(info)
+                concluida(info, linhas)
             elif cmd_args[0] == 'p':
                 info = ''.join(cmd_args[1:])
-                nao_concluida(info)
+                nao_concluida(info, linhas)
             elif cmd_args[0] == 'lc':
                 filtro='ld'
             elif cmd_args[0] == 'lp':
