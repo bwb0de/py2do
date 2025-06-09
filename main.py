@@ -4,6 +4,30 @@ import sys
 
 ARQUIVO="todo.txt"
 
+def verifica_se_git_dir() -> bool:
+    arquivos = set(os.listdir())
+    return '.git' in arquivos
+
+
+def verifica_se_todo_em_gitignore() -> bool:
+    git_dir = verifica_se_git_dir()
+    if git_dir:
+        with open('.gitignore') as f:
+            registros_ignorados = set(f.read().split(os.linesep))
+            return ARQUIVO in registros_ignorados
+    return False
+
+
+def inclui_em_gitignore():
+    git_dir = verifica_se_git_dir()
+    in_gitignore = verifica_se_todo_em_gitignore()
+    if git_dir and not in_gitignore:
+        with open('.gitignore', 'a') as f:
+            f.write(os.linesep*2)
+            f.write('#Arquivo 2do cli')
+            f.write(ARQUIVO)
+
+
 
 def adicionar(info, n, tags='all'):
     yyyy = str(datetime.datetime.today().year).zfill(2)
@@ -116,6 +140,8 @@ def sair():
 def main():
     if sys.platform == 'linux': os.system('clear')
     else: os.system('cls')
+
+    inclui_em_gitignore()
 
     filtro=False
     n=0
