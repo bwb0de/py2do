@@ -20,6 +20,7 @@ class ToDo:
         self.__tags = set(tags)
         self.__concluida = True if status == 'x' else False
         self.__info = info
+        if not 'all' in self.__tags: tags.add('all')
 
     def __repr__(self):
         concluida = 'x' if self.__concluida else ' '
@@ -94,11 +95,13 @@ def cria_arquivo_todo_se_nao_existir() -> None:
         with open(ARQUIVO, 'w') as f:
             pass
 
+
 def carrega_registros_na_memoria() -> list:
     with open(ARQUIVO) as f:
         linhas = f.read().split(os.linesep)
         return linhas
-   
+
+
 def expansor_lista_numerica(lista_numerica: str) -> list:
     nums = set(filter(None, lista_numerica.strip().split(',')))
     nums_intervalo = set(filter(lambda x: bool(x.find('-')+1), nums))
