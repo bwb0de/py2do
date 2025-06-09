@@ -119,9 +119,15 @@ def main():
 
     filtro=False
     n=0
+    first_pass = True
 
     while True:
         n=contar_linhas()
+
+        if first_pass: 
+            print("")
+            first_pass = False
+
         ler(filtro)
         try:
             cmd_args = input('$: ').split()
