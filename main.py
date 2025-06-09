@@ -24,7 +24,7 @@ def verifica_se_arquivo_todo_existe() -> bool:
     return ARQUIVO in arquivos
 
 
-def inclui_em_gitignore():
+def inclui_em_gitignore() -> None:
     git_dir = verifica_se_git_dir()
     in_gitignore = verifica_se_todo_em_gitignore()
     if git_dir and not in_gitignore:
@@ -34,11 +34,19 @@ def inclui_em_gitignore():
             f.write(ARQUIVO)
 
 
-def cria_arquivo_todo_se_nao_existir():
+def cria_arquivo_todo_se_nao_existir() -> None:
     todo_existe = verifica_se_arquivo_todo_existe()
     if not todo_existe:
         with open(ARQUIVO, 'w') as f:
             pass
+
+
+def carrega_registros_na_memoria() -> list:
+    with open(ARQUIVO) as f:
+        linhas = f.read().split(os.linesep)
+        return linhas
+   
+
 
 
 def adicionar(info, n, tags='all'):
@@ -50,7 +58,9 @@ def adicionar(info, n, tags='all'):
     s = str(datetime.datetime.today().second).zfill(2)
 
     with open(ARQUIVO, 'a') as f:
-        f.write(f'{n}--[{yyyy}-{mm}-{dd}_{h}:{m}:{s}][*{tags}*][ ]{info}\n')
+        registro = f'{n}--[{yyyy}-{mm}-{dd}_{h}:{m}:{s}][*{tags}*][ ]{info}{os.linesep}' 
+        f.write(registro)
+        return registro
 
 
 def filtrar_registros(linhas, filtro=False):
@@ -64,13 +74,7 @@ def filtrar_registros(linhas, filtro=False):
     return linhas_ver
 
 
-def contar_linhas():
-    linhas = None
-    try:
-        with open(ARQUIVO) as f:
-            linhas = f.read().split('\n')
-    except FileNotFoundError:
-        return 0
+def contar_linhas(linhas):
     return len(tuple(filter(None, linhas)))
 
 
@@ -159,13 +163,14 @@ def main():
 
     cria_arquivo_todo_se_nao_existir()
     inclui_em_gitignore()
+    linhas = carrega_registros_na_memoria()
 
     filtro=False
     n=0
     first_pass = True
 
     while True:
-        n=contar_linhas()
+        n=contar_linhas(linhas)
 
         if first_pass: 
             print("")
@@ -176,7 +181,8 @@ def main():
             cmd_args = input('$: ').split()
             if cmd_args[0] == 'a':
                 info = ' '.join(filter(None, cmd_args[1:]))
-                adicionar(info, n)
+                registro = adicionar(info, n)
+                linhas.append(registro)
             elif cmd_args[0] == 'q':
                 sair()
                 break
