@@ -1,12 +1,11 @@
 import datetime
 import os
 import sys
-import pyperclip
+#import pyperclip
 
 from typing import List
 
 ARQUIVO="todo.txt"
-
 
 class ToDo:
     def __init__(self, registro_2do: str):
@@ -29,6 +28,16 @@ class ToDo:
     def update(self, registro_2do: str):
         self.__init__(registro_2do)
 
+    def concluir(self):
+        self.__concluida = True
+
+    def reverter(self):
+        self.__concluida = False
+
+    @property
+    def todo_text(self):
+        return f"{self.index}--[{self.__timestamp}][*{','.join(tuple(self.tags))}*][{'x' if self.__concluida else ' '}]{self.info}"
+
     @property
     def concluida(self):
         return self.__concluida
@@ -44,6 +53,10 @@ class ToDo:
     @property
     def index(self):
         return self.__index
+
+    @property
+    def ts(self):
+        return self.__timestamp
 
 
 
@@ -102,7 +115,7 @@ def expansor_lista_numerica(lista_numerica: str) -> list:
 
 
 
-def adicionar(info: str, n: int, tags: str='all') -> str:
+def adicionar(info: str, n: int) -> ToDo:
     yyyy = str(datetime.datetime.today().year).zfill(2)
     mm = str(datetime.datetime.today().month).zfill(2)
     dd = str(datetime.datetime.today().day).zfill(2)
@@ -110,22 +123,26 @@ def adicionar(info: str, n: int, tags: str='all') -> str:
     m = str(datetime.datetime.today().minute).zfill(2)
     s = str(datetime.datetime.today().second).zfill(2)
 
+    has_tags = len(info.split('t:')) == 2
+    if has_tags:
+        info, tags = info.split('t:')
+        tags = tags.strip().replace(' ','')
+    else:
+        tags = 'all' 
+
     with open(ARQUIVO, 'a') as f:
-        registro = f'{n}--[{yyyy}-{mm}-{dd}_{h}:{m}:{s}][*{tags}*][ ]{info}{os.linesep}' 
+        registro = f"{n}--[{yyyy}-{mm}-{dd}_{h}:{m}:{s}][*{tags}*][ ]{info}{os.linesep}" 
         f.write(registro)
-        return registro
+        return ToDo(registro.strip())
 
 
 def filtrar_registros(linhas: List[ToDo], filtro=False) -> list:
     if not filtro:
-        linhas_ver = [l for l in linhas]
+        linhas_ver = linhas 
     elif filtro == 'ld':
         linhas_ver = list(filter(lambda l: l.concluida, linhas))
-        #linhas_ver = list(filter(lambda l: True if l.find('[ ]') == -1 else False, linhas))
     elif filtro == 'lp':
         linhas_ver = list(filter(lambda l: not l.concluida, linhas))
-        #linhas_ver = list(filter(lambda l: True if l.find('[x]') == -1 else False, linhas))
-
     return linhas_ver
 
 
@@ -145,9 +162,8 @@ def ler(linhas: List[ToDo], filtro=False):
     else:
         for l in linhas_ver:
             try:
-                print(f"{str(l.index).zfill(2)}: {l}")
-                #idx = int(l.split('--')[0])+1
-                #print(f"{str(idx).zfill(2)}: [{l.split('*][')[1]}")
+                i = l.index + 1
+                print(f"{str(i).zfill(2)}: {l}")
             except IndexError:
                 pass
             except ValueError:
@@ -163,16 +179,15 @@ def concluida(lista_numeros: str, linhas: list, filtro=False) -> None:
     info_selecionada = []
 
     for i, l in enumerate(linhas_ver):
-        if i in nums:
-            idx = int(l.split('--')[0])
-            linhas[idx] = linhas[idx].replace('[ ]', '[x]')
-            selecao = linhas[idx].split('[x]')[1]
-            info_selecionada.append(selecao)
+        if i in nums:          
+            l.concluir()
     
-    pyperclip.copy('; '.join(info_selecionada))
+    #pyperclip.copy('; '.join(info_selecionada))
+
+    linhas_atualizadas = [l.todo_text for l in linhas]
 
     with open(ARQUIVO, 'w') as f:
-        f.write('\n'.join(linhas))
+        f.write('\n'.join(linhas_atualizadas))
 
 
 def nao_concluida(lista_numeros: str, linhas: list,  filtro=False) -> None:
@@ -183,11 +198,12 @@ def nao_concluida(lista_numeros: str, linhas: list,  filtro=False) -> None:
 
     for i, l in enumerate(linhas_ver):
         if i in nums:
-            idx = int(l.split('--')[0])
-            linhas[idx] = linhas[idx].replace('[x]', '[ ]')
+            l.reverter()
+
+    linhas_atualizadas = [l.todo_text for l in linhas]
 
     with open(ARQUIVO, 'w') as f:
-        f.write('\n'.join(linhas))
+        f.write('\n'.join(linhas_atualizadas))
 
 
 def sair() -> None:
@@ -211,7 +227,7 @@ def main() -> None:
     first_pass = True
 
     while True:
-        n=contar_linhas(linhas)
+        n=contar_linhas(linhas_todos)
 
         if first_pass: 
             print("")
@@ -224,16 +240,16 @@ def main() -> None:
             if cmd_args[0] == 'a':
                 info = ' '.join(filter(None, cmd_args[1:]))
                 registro = adicionar(info, n)
-                linhas.append(registro)
+                linhas_todos.append(registro)
             elif cmd_args[0] == 'q':
                 sair()
                 break
             elif cmd_args[0] == 'c':
                 info = ''.join(cmd_args[1:])
-                concluida(info, linhas)
+                concluida(info, linhas_todos)
             elif cmd_args[0] == 'p':
                 info = ''.join(cmd_args[1:])
-                nao_concluida(info, linhas)
+                nao_concluida(info, linhas_todos)
             elif cmd_args[0] == 'lc':
                 filtro='ld'
             elif cmd_args[0] == 'lp':
