@@ -3,6 +3,8 @@ import os
 import sys
 import pyperclip
 
+from typing import List
+
 ARQUIVO="todo.txt"
 
 
@@ -20,7 +22,7 @@ class ToDo:
         self.__concluida = True if status == 'x' else False
         self.__info = info
 
-    def __str__(self):
+    def __repr__(self):
         concluida = 'x' if self.__concluida else ' '
         return f'[{concluida}]{self.__info}'
 
@@ -114,13 +116,15 @@ def adicionar(info: str, n: int, tags: str='all') -> str:
         return registro
 
 
-def filtrar_registros(linhas: list, filtro=False) -> list:
+def filtrar_registros(linhas: List[ToDo], filtro=False) -> list:
     if not filtro:
         linhas_ver = [l for l in linhas]
     elif filtro == 'ld':
-        linhas_ver = list(filter(lambda l: True if l.find('[ ]') == -1 else False, linhas))
+        linhas_ver = list(filter(lambda l: l.concluida, linhas))
+        #linhas_ver = list(filter(lambda l: True if l.find('[ ]') == -1 else False, linhas))
     elif filtro == 'lp':
-        linhas_ver = list(filter(lambda l: True if l.find('[x]') == -1 else False, linhas))
+        linhas_ver = list(filter(lambda l: not l.concluida, linhas))
+        #linhas_ver = list(filter(lambda l: True if l.find('[x]') == -1 else False, linhas))
 
     return linhas_ver
 
@@ -129,7 +133,7 @@ def contar_linhas(linhas: list) -> int:
     return len(tuple(filter(None, linhas)))
 
 
-def ler(linhas: list, filtro=False):
+def ler(linhas: List[ToDo], filtro=False):
     no_info = not bool(linhas)
 
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
@@ -141,8 +145,9 @@ def ler(linhas: list, filtro=False):
     else:
         for l in linhas_ver:
             try:
-                idx = int(l.split('--')[0])+1
-                print(f"{str(idx).zfill(2)}: [{l.split('*][')[1]}")
+                print(f"{str(l.index).zfill(2)}: {l}")
+                #idx = int(l.split('--')[0])+1
+                #print(f"{str(idx).zfill(2)}: [{l.split('*][')[1]}")
             except IndexError:
                 pass
             except ValueError:
@@ -199,6 +204,7 @@ def main() -> None:
     cria_arquivo_todo_se_nao_existir()
     inclui_em_gitignore()
     linhas = carrega_registros_na_memoria()
+    linhas_todos = [ToDo(l) for l in filter(None, linhas)]
 
     filtro='lp'
     n=0
@@ -211,7 +217,7 @@ def main() -> None:
             print("")
             first_pass = False
 
-        ler(linhas, filtro=filtro)
+        ler(linhas_todos, filtro=filtro)
 
         try:
             cmd_args = input('$: ').split()
