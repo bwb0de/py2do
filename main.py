@@ -5,6 +5,46 @@ import pyperclip
 
 ARQUIVO="todo.txt"
 
+
+class ToDo:
+    def __init__(self, registro_2do: str):
+        # Parser
+        index, restante = registro_2do.split('--')
+        timestamp, tags, restante = restante.split('][')
+        timestamp, tags = timestamp[1:], tags.replace('*','').split(',')
+        status, info = restante.split(']')
+
+        self.__timestamp = timestamp
+        self.__index = int(index)
+        self.__tags = set(tags)
+        self.__concluida = True if status == 'x' else False
+        self.__info = info
+
+    def __str__(self):
+        concluida = 'x' if self.__concluida else ' '
+        return f'[{concluida}]{self.__info}'
+
+    def update(self, registro_2do: str):
+        self.__init__(registro_2do)
+
+    @property
+    def concluida(self):
+        return self.__concluida
+
+    @property
+    def tags(self):
+        return self.__tags
+
+    @property
+    def info(self):
+        return self.__info
+
+    @property
+    def index(self):
+        return self.__index
+
+
+
 def verifica_se_git_dir() -> bool:
     arquivos = set(os.listdir())
     return '.git' in arquivos
@@ -33,19 +73,30 @@ def inclui_em_gitignore() -> None:
             f.write('#Arquivo 2do cli'+os.linesep)
             f.write(ARQUIVO)
 
-
 def cria_arquivo_todo_se_nao_existir() -> None:
     todo_existe = verifica_se_arquivo_todo_existe()
     if not todo_existe:
         with open(ARQUIVO, 'w') as f:
             pass
 
-
 def carrega_registros_na_memoria() -> list:
     with open(ARQUIVO) as f:
         linhas = f.read().split(os.linesep)
         return linhas
    
+def expansor_lista_numerica(lista_numerica: str) -> list:
+    nums = set(filter(None, lista_numerica.strip().split(',')))
+    nums_intervalo = set(filter(lambda x: bool(x.find('-')+1), nums))
+    nums_isolados = nums.difference(nums_intervalo)
+    nums_expandidos = []
+    for npairs in nums_intervalo:
+        ni, nf = npairs.split('-')
+        ni, nf = int(ni), int(nf)
+        nums_expandidos += [*list(range(ni, nf+1))]
+    nums_convertidos = list(map(int, nums_isolados)) + nums_expandidos
+    print(nums_convertidos)
+    return nums_convertidos
+
 
 
 
@@ -100,10 +151,9 @@ def ler(linhas: list, filtro=False):
 
 
 def concluida(lista_numeros: str, linhas: list, filtro=False) -> None:
-    nums = lista_numeros.strip().split(',')
-    nums = map(int, filter(None, nums))
+    nums = expansor_lista_numerica(lista_numeros)
     nums = set(map(lambda x: x-1, nums))
-    
+
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
     info_selecionada = []
 
@@ -121,8 +171,7 @@ def concluida(lista_numeros: str, linhas: list, filtro=False) -> None:
 
 
 def nao_concluida(lista_numeros: str, linhas: list,  filtro=False) -> None:
-    nums = lista_numeros.strip().split(',')
-    nums = map(int, filter(None, nums))
+    nums = expansor_lista_numerica(lista_numeros)
     nums = set(map(lambda x: x-1, nums))
 
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
