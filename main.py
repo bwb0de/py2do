@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import pyperclip
 
 ARQUIVO="todo.txt"
 
@@ -18,6 +19,11 @@ def verifica_se_todo_em_gitignore() -> bool:
     return False
 
 
+def verifica_se_arquivo_todo_existe() -> bool:
+    arquivos = set(os.listdir())
+    return ARQUIVO in arquivos
+
+
 def inclui_em_gitignore():
     git_dir = verifica_se_git_dir()
     in_gitignore = verifica_se_todo_em_gitignore()
@@ -27,6 +33,12 @@ def inclui_em_gitignore():
             f.write('#Arquivo 2do cli'+os.linesep)
             f.write(ARQUIVO)
 
+
+def cria_arquivo_todo_se_nao_existir():
+    todo_existe = verifica_se_arquivo_todo_existe()
+    if not todo_existe:
+        with open(ARQUIVO, 'w') as f:
+            pass
 
 
 def adicionar(info, n, tags='all'):
@@ -101,12 +113,16 @@ def concluida(lista_numeros, filtro=False):
         linhas = f.read().split('\n')
     
     linhas_ver = filtrar_registros(linhas, filtro=filtro)
+    info_selecionada = []
 
     for i, l in enumerate(linhas_ver):
         if i in nums:
             idx = int(l.split('--')[0])
             linhas[idx] = linhas[idx].replace('[ ]', '[x]')
-
+            selecao = linhas[idx].split('[x]')[1]
+            info_selecionada.append(selecao)
+    
+    pyperclip.copy('; '.join(info_selecionada))
 
     with open(ARQUIVO, 'w') as f:
         f.write('\n'.join(linhas))
@@ -141,6 +157,7 @@ def main():
     if sys.platform == 'linux': os.system('clear')
     else: os.system('cls')
 
+    cria_arquivo_todo_se_nao_existir()
     inclui_em_gitignore()
 
     filtro=False
