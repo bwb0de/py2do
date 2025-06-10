@@ -11,6 +11,8 @@ $: lp                                   # Lista registros pendentes
 
 $: lc                                   # Lista registros concluidos
 
+$: lt tag1,tag2...                      # Lista registros filtrando por tags
+
 $: c 1,2,3,5-7...                       # Marca registros com os respectivos números como concluidos
 
 $: p 1,2,3,8...                         # Marca registros com os respectivos números como pendentes
