@@ -1,11 +1,13 @@
 import datetime
 import os
 import sys
+import pathlib
+
 
 from typing import List
 from entities import ToDo
 
-ARQUIVO="todo.txt"
+ARQUIVO="/home/bwb0de/Dropbox/todo.txt"
 
 
 def verifica_se_git_dir() -> bool:
@@ -23,8 +25,7 @@ def verifica_se_todo_em_gitignore() -> bool:
 
 
 def verifica_se_arquivo_todo_existe() -> bool:
-    arquivos = set(os.listdir())
-    return ARQUIVO in arquivos
+    return pathlib.Path(ARQUIVO).exists()
 
 
 def inclui_em_gitignore() -> None:
